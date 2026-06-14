@@ -4,12 +4,13 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     scripts:
-      - name: Build Real iOS IPA
+      - name: Initialize Web Assets
         script: |
-          # 1. الدخول لمجلد مشروع الأيفون مباشرة
+          npm install
+          npx cap copy ios
+      - name: Build Xcode Core
+        script: |
           cd ios/App
-          
-          # 2. بناء المشروع باستخدام Xcodebuild وتحديد مسار مخصص ونظيف للـ Build أوتوماتيك
           xcodebuild -workspace App.xcworkspace \
                      -scheme App \
                      -sdk iphoneos \
@@ -19,12 +20,9 @@ workflows:
                      CODE_SIGNING_REQUIRED=NO \
                      clean build
           
-          # 3. الدخول للمسار الجديد المضمون وتجميع الـ Payload
           cd build_output/Build/Products/Debug-iphoneos
           mkdir -p Payload
           cp -R App.app Payload/
-          
-          # 4. ضغط الـ IPA في المجلد الرئيسي لـ Codemagic بمساحته الكاملة
           zip -r $CM_BUILD_DIR/FinanceOS.ipa Payload
     artifacts:
       - $CM_BUILD_DIR/*.ipa
