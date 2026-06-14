@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/ios": "^5.0.0"
+  },
+  "devDependencies": {
+    "@expo/cli": "^56.1.15",
+    "@expo/metro-runtime": "^56.0.15",
+    "@expo/ngrok": "^4.1.3"
+  }
+}
