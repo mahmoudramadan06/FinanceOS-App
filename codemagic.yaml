@@ -4,15 +4,19 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     scripts:
-      - name: Build Pure iOS App from WWW
+      - name: Packaging Pure HTML Web Assets into Real IPA
         script: |
-          # 1. إنشاء هيكل أبلكيشن أيفون رسمي داخل السيرفر
+          # 1. تنظيف أي بناء قديم وإنشاء مجلد حزمة الأيفون التنفيذي
+          rm -rf Payload FinanceOS.ipa
           mkdir -p Payload/App.app
           
-          # 2. نسخ ملفات الويب النضيفة بتاعتك جوة الأبلكيشن
-          cp -R www/* Payload/App.app/
+          # 2. نسخ شامل لكل الملفات والمجلدات الفرعية من www
+          cp -R www/. Payload/App.app/
           
-          # 3. ضغط الحزمة وتحويلها لـ IPA حقيقي بمساحته الكاملة
+          # 3. إنشاء ملف معلومات التطبيق الإجباري لنظام iOS عشان الأيفون يتعرف عليه
+          echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>CFBundleExecutable</key><string>App</string><key>CFBundleIdentifier</key><string>com.mahmoud.financeapp</string><key>CFBundleName</key><string>FinanceOS</string><key>CFBundleVersion</key><string>1.0</string><key>CFBundleShortVersionString</key><string>1.0</string></dict></plist>' > Payload/App.app/Info.plist
+          
+          # 4. ضغط الحزمة النهائية للمجلد الرئيسي
           zip -r $CM_BUILD_DIR/FinanceOS.ipa Payload
     artifacts:
       - $CM_BUILD_DIR/*.ipa
