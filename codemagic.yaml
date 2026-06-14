@@ -9,15 +9,25 @@ workflows:
           npm install
           npx cap sync ios
           
-      - name: Capacitor Native Build iOS
+      - name: Build Xcode Project Clean
         script: |
-          # مسحنا الـ --no-open الرخمة
-          npx cap build ios
+          cd ios/App
+          
+          # بناء المشروع مع إجبار الـ Xcode على تجاهل التوقيع تماماً وبدون حساب مطور
+          xcodebuild -workspace App.xcworkspace \
+                     -scheme App \
+                     -sdk iphoneos \
+                     -configuration Debug \
+                     -derivedDataPath build_output \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_IDENTITY="" \
+                     PROVISIONING_PROFILE_SPECIFIER="" \
+                     clean build
           
       - name: Package IPA
         script: |
-          cd ios/App/DerivedData/*
-          cd Build/Products/Debug-iphoneos
+          cd ios/App/build_output/Build/Products/Debug-iphoneos
           mkdir -p Payload
           cp -R App.app Payload/
           zip -r $CM_BUILD_DIR/FinanceOS.ipa Payload
