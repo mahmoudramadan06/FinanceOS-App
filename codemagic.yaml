@@ -4,13 +4,37 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
-      groups:
-        - app_store_credentials
       vars:
-        XCODE_PROJECT: "FinanceOS"
+        APP_ID: "com.mahmoud.financeapp"
+        APP_NAME: "FinanceOS"
     scripts:
-      - name: Create Webview Project
-        script: | 
-          echo "Preparing HTML/JS Project for iOS Package"
+      - name: Initialize iOS Project from WWW
+        script: |
+          # تثبيت الأدوات الأساسية وتحويل الويب لتطبيق أيفون
+          npm install -g @capacitor/cli @capacitor/core
+          npm install @capacitor/ios
+          
+          # إنشاء ملف الـ package الأساسي للسيرفر
+          echo '{"name": "financeapp", "version": "1.0.0"}' > package.json
+          
+          # تهيئة الكاباسيتور وربطه بـ www
+          npx cap init "$APP_NAME" "$APP_ID" --web-dir=www
+          
+          # إضافة منصة الأيفون وبناء ملفات الـ Xcode
+          npx cap add ios
+          npx cap sync
+      - name: Build iOS IPA (Debug Mode)
+        script: |
+          # بناء الـ .ipa بدون الحاجة لشهادات مدفوعة
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -allowProvisioningUpdates -sdk iphoneos build CODE_SIGNING_ALLOWED=NO
+          
+          # تجميع الـ Build جوه فولدر الـ Artifacts لـ Codemagic
+          mkdir -p $CM_BUILD_DIR/build
+          mv build/Build/Products/Debug-iphoneos/App.app $CM_BUILD_DIR/build/
+          cd $CM_BUILD_DIR/build
+          mkdir Payload
+          mv App.app Payload/
+          zip -r ../FinanceOS.ipa Payload
     artifacts:
-      - $CM_BUILD_DIR/**/*.ipa
+      - $CM_BUILD_DIR/*.ipa
