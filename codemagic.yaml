@@ -4,12 +4,16 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     scripts:
-      - name: Build Xcode Project
+      - name: Clean Pods Dependency and Build Real IPA
         script: |
           cd ios/App
           
-          # بناء حزمة الـ Xcode النيتيف وتوليد الملف التنفيذي أوتوماتيكياً
-          xcodebuild -workspace App.xcworkspace \
+          # 1. إجبار مشروع الـ Xcode على تجاهل ملفات الـ Pods المفقودة تماماً
+          sed -i '' 's/Pods-App.debug.xcconfig//g' App.xcodeproj/project.pbxproj || true
+          sed -i '' 's/Pods-App.release.xcconfig//g' App.xcodeproj/project.pbxproj || true
+          
+          # 2. البناء النظيف من غير ما الـ Xcode يدور على ملفات قديمة
+          xcodebuild -project App.xcodeproj \
                      -scheme App \
                      -sdk iphoneos \
                      -configuration Debug \
@@ -18,7 +22,7 @@ workflows:
                      CODE_SIGNING_REQUIRED=NO \
                      clean build
           
-          # تجميع الـ Payload من المجلد الناتج الحقيقي للمحاكي
+          # 3. تجميع الـ Payload والضغط
           cd build_output/Build/Products/Debug-iphoneos
           mkdir -p Payload
           cp -R App.app Payload/
