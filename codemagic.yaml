@@ -4,26 +4,22 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     scripts:
-      - name: Clean Pods Dependency and Build Real IPA
+      - name: Install Dependencies and Sync Capacitor
         script: |
-          cd ios/App
+          # 1. تثبيت الجيجات والمكونات جوه السيرفر
+          npm install
+          npx cap sync ios
           
-          # 1. إجبار مشروع الـ Xcode على تجاهل ملفات الـ Pods المفقودة تماماً
-          sed -i '' 's/Pods-App.debug.xcconfig//g' App.xcodeproj/project.pbxproj || true
-          sed -i '' 's/Pods-App.release.xcconfig//g' App.xcodeproj/project.pbxproj || true
+      - name: Capacitor Native Build iOS
+        script: |
+          # 2. أمر كاباسيتور الرسمي لبناء حزمة أيفون كاملة بدون تشفير أو توقيع
+          npx cap build ios --no-open
           
-          # 2. البناء النظيف من غير ما الـ Xcode يدور على ملفات قديمة
-          xcodebuild -project App.xcodeproj \
-                     -scheme App \
-                     -sdk iphoneos \
-                     -configuration Debug \
-                     -derivedDataPath build_output \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO \
-                     clean build
-          
-          # 3. تجميع الـ Payload والضغط
-          cd build_output/Build/Products/Debug-iphoneos
+      - name: Package IPA
+        script: |
+          # 3. تجميع الـ Payload والـ IPA من المجلد اللي كاباسيتور قفله أوتوماتيك
+          cd ios/App/DerivedData/*
+          cd Build/Products/Debug-iphoneos
           mkdir -p Payload
           cp -R App.app Payload/
           zip -r $CM_BUILD_DIR/FinanceOS.ipa Payload
