@@ -6,18 +6,16 @@ workflows:
     scripts:
       - name: Install Dependencies and Sync Capacitor
         script: |
-          # 1. تثبيت الجيجات والمكونات جوه السيرفر
           npm install
           npx cap sync ios
           
       - name: Capacitor Native Build iOS
         script: |
-          # 2. أمر كاباسيتور الرسمي لبناء حزمة أيفون كاملة بدون تشفير أو توقيع
-          npx cap build ios --no-open
+          # مسحنا الـ --no-open الرخمة
+          npx cap build ios
           
       - name: Package IPA
         script: |
-          # 3. تجميع الـ Payload والـ IPA من المجلد اللي كاباسيتور قفله أوتوماتيك
           cd ios/App/DerivedData/*
           cd Build/Products/Debug-iphoneos
           mkdir -p Payload
