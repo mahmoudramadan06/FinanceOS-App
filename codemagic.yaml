@@ -1,0 +1,16 @@
+workflows:
+  ios-html-app:
+    name: Build iOS IPA
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      groups:
+        - app_store_credentials
+      vars:
+        XCODE_PROJECT: "FinanceOS"
+    scripts:
+      - name: Create Webview Project
+        script: | 
+          echo "Preparing HTML/JS Project for iOS Package"
+    artifacts:
+      - $CM_BUILD_DIR/**/*.ipa
