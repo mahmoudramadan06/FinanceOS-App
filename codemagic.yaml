@@ -4,19 +4,27 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     scripts:
-      - name: Install Pods and Build Real IPA
+      - name: Build Real iOS IPA
         script: |
-          # 1. الدخول لمشروع الأيفون وتثبيت المكونات الرسمية داخل السيرفر
+          # 1. الدخول لمجلد مشروع الأيفون مباشرة
           cd ios/App
-          pod install
           
-          # 2. بناء حزمة الـ Xcode كاملة بنظام الـ Debug
-          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build
+          # 2. بناء المشروع باستخدام Xcodebuild وتحديد مسار مخصص ونظيف للـ Build أوتوماتيك
+          xcodebuild -workspace App.xcworkspace \
+                     -scheme App \
+                     -sdk iphoneos \
+                     -configuration Debug \
+                     -derivedDataPath build_output \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     clean build
           
-          # 3. تجميع الـ Payload وضغط الـ .ipa الأصلي بمساحته الكاملة
-          cd Build/Products/Debug-iphoneos
+          # 3. الدخول للمسار الجديد المضمون وتجميع الـ Payload
+          cd build_output/Build/Products/Debug-iphoneos
           mkdir -p Payload
           cp -R App.app Payload/
+          
+          # 4. ضغط الـ IPA في المجلد الرئيسي لـ Codemagic بمساحته الكاملة
           zip -r $CM_BUILD_DIR/FinanceOS.ipa Payload
     artifacts:
       - $CM_BUILD_DIR/*.ipa
